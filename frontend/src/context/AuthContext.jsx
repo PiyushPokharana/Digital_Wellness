@@ -15,10 +15,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Email validation for IIITN format: bt2xxxxxxx@iiitn.ac.in
+  // Email validation for IIITN format: bt + 2-digit year + 3-letter branch + 3-digit roll
   const isValidEmail = (email) => {
     if (!email) return false;
-    const pattern = /^bt2\d{7}@iiitn\.ac\.in$/i;
+    const pattern = /^bt\d{2}[a-z]{3}\d{3}@iiitn\.ac\.in$/i;
     return pattern.test(email);
   };
 
