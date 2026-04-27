@@ -28,7 +28,7 @@ npm install
 # Add your MongoDB Atlas and Cloudinary credentials
 
 npm run dev
-# Backend runs on http://localhost:5000
+# Backend runs on your deployed backend domain
 ```
 
 ### Frontend Setup (2 minutes)
@@ -38,15 +38,15 @@ cd frontend
 npm install
 
 # Create .env file
-# VITE_API_BASE_URL=http://localhost:5000/api
+# VITE_API_BASE_URL=https://your-backend-domain.com/api
 
 npm run dev
-# Frontend runs on http://localhost:3000
+# Frontend runs on your deployed frontend domain
 ```
 
 ### Test the Application
 
-1. Open http://localhost:3000
+1. Open your deployed frontend domain
 2. Click "Upload Your Work"
 3. Fill in the form and upload a file
 4. View your work in the Gallery
@@ -59,10 +59,10 @@ npm run dev
 - [ ] `CLOUDINARY_API_KEY` - Your Cloudinary API key
 - [ ] `CLOUDINARY_API_SECRET` - Your Cloudinary API secret
 - [ ] `PORT` - Server port (default: 5000)
-- [ ] `CORS_ORIGIN` - Frontend URL (default: http://localhost:3000)
+- [ ] `CORS_ORIGIN` - Frontend URL (example: https://your-frontend-domain.com)
 
 ### Frontend `.env` (frontend/.env)
-- [ ] `VITE_API_BASE_URL` - Backend API URL (default: http://localhost:5000/api)
+- [ ] `VITE_API_BASE_URL` - Backend API URL (example: https://your-backend-domain.com/api)
 
 ## 🐛 Common Issues
 

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API base URL - uses environment variable or defaults to localhost
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// API base URL uses env var in production; falls back to same-origin /api.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 /**
  * API Service

@@ -75,8 +75,8 @@ npm run dev
 
 Default URLs:
 
-- Frontend: http://localhost:3000
-- Backend: http://localhost:5000
+- Frontend: your deployed frontend domain
+- Backend: your deployed backend domain
 
 ## Environment Variables
 
@@ -87,11 +87,11 @@ Default URLs:
 - `CLOUDINARY_API_KEY` Cloudinary API key
 - `CLOUDINARY_API_SECRET` Cloudinary API secret
 - `PORT` API port (default `5000`)
-- `CORS_ORIGIN` frontend URL for CORS (default `http://localhost:3000`)
+- `CORS_ORIGIN` frontend URL for CORS (for example `https://your-frontend-domain.com`)
 
 ### Frontend (`frontend/.env`)
 
-- `VITE_API_BASE_URL` backend API URL, for example `http://localhost:5000/api`
+- `VITE_API_BASE_URL` backend API URL, for example `https://your-backend-domain.com/api`
 
 ## Scripts
 
