@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDropzone } from 'react-dropzone';
 import { getWorks } from '../services/api.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import LoginButton from '../components/LoginButton.jsx';
@@ -10,9 +11,17 @@ import LoginButton from '../components/LoginButton.jsx';
  */
 const HomePage = () => {
   const { canUpload } = useAuth();
+  const navigate = useNavigate();
   const [works, setWorks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const onDrop = (acceptedFiles) => {
+    if (acceptedFiles.length > 0) {
+      navigate('/upload', { state: { droppedFile: acceptedFiles[0] } });
+    }
+  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -35,7 +44,7 @@ const HomePage = () => {
 
   return (
     <div className="relative overflow-hidden text-slate-100">
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-slate-900/30 via-slate-950 to-black"></div>
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-[#0f2a5c]/20 via-[#0a192f] to-[#020817]"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-12">
         <header className="space-y-6">
           <p className="inline-flex items-center rounded-full border border-cyan-500/40 bg-cyan-500/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-cyan-200">
@@ -50,19 +59,27 @@ const HomePage = () => {
                 Boost Productivity With Focused Digital Use
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/70 p-6 shadow-2xl shadow-cyan-500/10">
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+            <div className="rounded-2xl border border-[#1e3a8a]/30 bg-[#0a192f]/70 p-6 shadow-2xl shadow-blue-500/10">
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-400/70">
                 Quick actions
               </p>
               <div className="mt-4 space-y-3">
                 {canUpload ? (
-                  <Link
-                    to="/upload"
-                    className="flex items-center justify-between rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 px-5 py-3 text-white shadow-lg shadow-cyan-500/30 transition hover:shadow-blue-500/30"
+                  <div
+                    {...getRootProps()}
+                    className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-5 py-6 transition cursor-pointer ${
+                      isDragActive
+                        ? 'border-blue-400 bg-blue-500/20'
+                        : 'border-[#1e3a8a]/50 bg-[#0f2a5c]/30 hover:border-blue-400/80 hover:bg-[#0f2a5c]/50'
+                    }`}
                   >
-                    <span className="font-semibold">Upload new project</span>
-                    <span className="text-2xl">⬆️</span>
-                  </Link>
+                    <input {...getInputProps()} />
+                    <span className="text-2xl mb-1">📥</span>
+                    <span className="font-semibold text-blue-50 text-center">
+                      {isDragActive ? 'Drop it here!' : 'Drag & drop to upload'}
+                    </span>
+                    <span className="text-xs text-blue-300/70 mt-1">or click to browse</span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-xl border border-slate-700/70 px-5 py-4 space-y-3">
                     <p className="text-sm text-slate-400 text-center">
@@ -73,7 +90,7 @@ const HomePage = () => {
                 )}
                 <Link
                   to="/gallery"
-                  className="flex items-center justify-between rounded-xl border border-slate-700/70 px-5 py-3 font-semibold text-slate-300 transition hover:border-cyan-400/60 hover:text-white"
+                  className="flex items-center justify-between rounded-xl border border-[#1e3a8a]/40 bg-[#0a192f]/50 px-5 py-3 font-semibold text-blue-100 transition hover:border-blue-400/60 hover:bg-[#0f2a5c]/40"
                 >
                   View full gallery
                   <span>↗</span>
@@ -137,14 +154,36 @@ const HomePage = () => {
                 <Link
                   key={work._id}
                   to={`/work/${work._id}`}
-                  className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-cyan-500 transition group"
+                  className="bg-[#0a192f] rounded-xl overflow-hidden border border-[#1e3a8a]/40 hover:border-blue-400 transition group shadow-lg shadow-black/20"
                 >
-                  <div className="w-full h-52 bg-black flex items-center justify-center overflow-hidden p-1">
-                    <img
-                      src={work.fileUrl || work.thumbnail || work.imageUrl}
-                      alt={work.title}
-                      className="max-h-full max-w-full object-contain group-hover:scale-[1.01] transition"
-                    />
+                  <div className="w-full h-52 bg-[#020817] flex items-center justify-center overflow-hidden relative">
+                    {work.fileType === 'image' ? (
+                      <img
+                        src={work.fileUrl}
+                        alt={work.title}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    ) : work.fileType === 'video' ? (
+                      <video
+                        src={work.fileUrl}
+                        muted
+                        loop
+                        playsInline
+                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                        onMouseOver={(e) => e.target.play()}
+                        onMouseOut={(e) => e.target.pause()}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center text-blue-400/50 group-hover:text-blue-400 transition-colors">
+                        <span className="text-5xl mb-2">
+                          {work.fileType === 'website' ? '🌐' : work.fileType === 'pdf' ? '📄' : work.fileType === 'zip' ? '📦' : '📁'}
+                        </span>
+                        <span className="text-xs font-semibold uppercase tracking-wider">
+                          {work.fileType}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="px-3 py-2 text-center space-y-1">
                     <h3 className="text-[13px] font-semibold text-white line-clamp-1">

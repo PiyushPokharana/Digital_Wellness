@@ -29,13 +29,13 @@ Your Cloudinary API_KEY is currently set to a URL, but it should be just the key
 
 Your MongoDB connection string should look like:
 ```
-MONGODB_URI=mongodb+srv://user1:japan2035@cluster0.w0ne8gb.mongodb.net/dw_website?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
 ```
 
 **Important checks:**
 - ✅ Database name (`dw_website`) is BEFORE the `?`
 - ✅ Has `?retryWrites=true&w=majority` at the end
-- ✅ Password is correct (`japan2035`)
+- ✅ Username and password are correct
 - ✅ Make sure your IP is whitelisted in MongoDB Atlas
 
 **To whitelist IP in MongoDB Atlas:**

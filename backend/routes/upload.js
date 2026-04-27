@@ -1,14 +1,29 @@
 const express = require('express');
 const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 const { body, validationResult } = require('express-validator');
 const Work = require('../models/Work');
-const { uploadToCloudinary, getResourceType } = require('../config/cloudinary');
+const { uploadLargeToCloudinary, getResourceType } = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Configure multer to store files in memory (not on disk)
-// This allows direct streaming to Cloudinary
-const storage = multer.memoryStorage();
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, '../uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure multer to store files on disk
+// This is critical for handling multi-GB files without crashing Node.js
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
 
 // File filter to accept specific file types
 const fileFilter = (req, file, cb) => {
@@ -31,7 +46,7 @@ const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 300 * 1024 * 1024 // 300MB limit
+    fileSize: 2500 * 1024 * 1024 // 2.5GB limit
   }
 });
 
@@ -115,22 +130,30 @@ router.post('/', optionalFileUpload, validateFields, async (req, res) => {
       }
 
       // Check file size (double check, even though multer should handle it)
-      if (req.file.size > 300 * 1024 * 1024) {
-        return res.status(400).json({ error: 'File size exceeds 300MB limit' });
+      if (req.file.size > 2500 * 1024 * 1024) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ error: 'File size exceeds 2.5GB limit' });
       }
 
       // Determine resource type for Cloudinary
       const resourceType = getResourceType(req.file.mimetype);
 
-      // Upload file directly to Cloudinary from buffer (no local storage)
-      console.log(`Uploading ${req.file.originalname} to Cloudinary...`);
-      const cloudinaryResult = await uploadToCloudinary(
-        req.file.buffer,
-        resourceType,
-        'student-works'
-      );
+      try {
+        // Upload large file to Cloudinary from disk
+        console.log(`Uploading ${req.file.originalname} to Cloudinary...`);
+        const cloudinaryResult = await uploadLargeToCloudinary(
+          req.file.path,
+          resourceType,
+          'student-works'
+        );
 
-      fileUrl = cloudinaryResult.url;
+        fileUrl = cloudinaryResult.url;
+      } finally {
+        // Clean up the local temp file after upload finishes or fails
+        if (fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+      }
 
       // Determine file type for our database
       if (req.file.mimetype.startsWith('image/')) {
@@ -171,6 +194,10 @@ router.post('/', optionalFileUpload, validateFields, async (req, res) => {
 
   } catch (error) {
     console.error('Upload error:', error);
+    // Cleanup on generic error if file exists
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({
       error: 'Upload failed',
       message: error.message

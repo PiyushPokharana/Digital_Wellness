@@ -14,11 +14,10 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: #020617;
+    background-color: #0a192f;
     background-image:
-      radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 45%),
-      radial-gradient(circle at 20% 20%, rgba(248, 250, 252, 0.05), transparent 35%),
-      linear-gradient(120deg, #020617 0%, #020b2d 60%, #010512 100%);
+      radial-gradient(circle at top, rgba(56, 189, 248, 0.1), transparent 45%),
+      linear-gradient(120deg, #0a192f 0%, #0f2a5c 50%, #020817 100%);
     color: #e2e8f0;
   }
 

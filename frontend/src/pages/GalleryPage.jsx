@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getWorks } from '../services/api';
-import WorkShowcaseCard from '../components/WorkShowcaseCard.jsx';
 
 const GalleryPage = () => {
   const [works, setWorks] = useState([]);
@@ -125,19 +124,33 @@ const GalleryPage = () => {
               to={`/work/${work._id}`}
               className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-cyan-500 transition group"
             >
-              <div className="w-full h-52 bg-black flex items-center justify-center overflow-hidden p-1">
+              <div className="w-full h-52 bg-[#020817] flex items-center justify-center overflow-hidden relative">
                 {work.fileType === 'image' ? (
                   <img
                     src={work.fileUrl}
                     alt={work.title}
-                    className="max-h-full max-w-full object-contain group-hover:scale-[1.01] transition"
+                    loading="lazy"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                   />
-                ) : work.fileType === 'video' || work.fileType === 'website' ? (
-                  <div className="text-4xl text-slate-500">
-                    {work.fileType === 'video' ? '🎥' : '🌐'}
-                  </div>
+                ) : work.fileType === 'video' ? (
+                  <video
+                    src={work.fileUrl}
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    onMouseOver={(e) => e.target.play()}
+                    onMouseOut={(e) => e.target.pause()}
+                  />
                 ) : (
-                  <div className="text-4xl text-slate-500">📄</div>
+                  <div className="flex flex-col items-center justify-center text-blue-400/50 group-hover:text-blue-400 transition-colors">
+                    <span className="text-5xl mb-2">
+                      {work.fileType === 'website' ? '🌐' : work.fileType === 'pdf' ? '📄' : work.fileType === 'zip' ? '📦' : '📁'}
+                    </span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {work.fileType}
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="px-3 py-2 text-center space-y-1">

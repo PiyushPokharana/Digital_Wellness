@@ -84,6 +84,29 @@ const WorkDetailPage = () => {
           </div>
         );
 
+      case 'website':
+        return (
+          <div className="bg-slate-900/70 rounded-lg p-4 border border-slate-800">
+            <iframe
+              src={work.fileUrl}
+              sandbox="allow-scripts allow-same-origin"
+              title="Website Preview"
+              className="w-full h-[600px] md:h-[800px] rounded-lg shadow-2xl bg-white"
+            />
+            <div className="mt-4 text-center">
+              <a
+                href={work.fileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition hover:brightness-110"
+              >
+                <span className="mr-2">↗</span>
+                Open in new tab
+              </a>
+            </div>
+          </div>
+        );
+
       case 'pdf':
         return (
           <div className="bg-slate-900/70 rounded-lg p-4 border border-slate-800">

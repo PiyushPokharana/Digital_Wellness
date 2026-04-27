@@ -65,8 +65,43 @@ const getResourceType = (mimetype) => {
   }
 };
 
+/**
+ * Upload large file to Cloudinary directly from disk using chunking
+ * @param {string} filePath - Path to local file
+ * @param {string} resourceType - Type of resource: 'image', 'video', 'raw'
+ * @param {string} folder - Folder name in Cloudinary
+ * @returns {Promise<Object>} Cloudinary upload result with secure URL
+ */
+const uploadLargeToCloudinary = async (filePath, resourceType = 'auto', folder = 'student-works') => {
+  return new Promise((resolve, reject) => {
+    const uploadOptions = {
+      resource_type: resourceType === 'auto' ? 'auto' : resourceType,
+      folder: folder,
+      use_filename: true,
+      unique_filename: true,
+      chunk_size: 20000000 // 20MB chunk size
+    };
+
+    cloudinary.uploader.upload_large(filePath, uploadOptions, (error, result) => {
+      if (error) {
+        console.error('Cloudinary upload_large error:', error);
+        reject(error);
+      } else {
+        resolve({
+          url: result.secure_url,
+          public_id: result.public_id,
+          resource_type: result.resource_type,
+          format: result.format,
+          bytes: result.bytes
+        });
+      }
+    });
+  });
+};
+
 module.exports = {
   cloudinary,
   uploadToCloudinary,
+  uploadLargeToCloudinary,
   getResourceType
 };

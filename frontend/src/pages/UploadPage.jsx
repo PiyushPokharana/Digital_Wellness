@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { uploadWork } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -20,7 +20,8 @@ const UploadPage = () => {
     category: 'Comic',
     url: '', // For website/video URLs
   });
-  const [file, setFile] = useState(null);
+  const location = useLocation();
+  const [file, setFile] = useState(location.state?.droppedFile || null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -43,7 +44,7 @@ const UploadPage = () => {
       'application/pdf': ['.pdf'],
       'application/zip': ['.zip'],
     },
-    maxSize: 300 * 1024 * 1024, // 300MB
+    maxSize: 2500 * 1024 * 1024, // 2.5GB
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
         setFile(acceptedFiles[0]);
@@ -54,7 +55,7 @@ const UploadPage = () => {
       if (rejectedFiles.length > 0) {
         const rejection = rejectedFiles[0];
         if (rejection.errors.some(e => e.code === 'file-too-large')) {
-          setErrors({ ...errors, file: 'File size exceeds 300MB limit' });
+          setErrors({ ...errors, file: 'File size exceeds 2.5GB limit' });
         } else {
           setErrors({ ...errors, file: 'Invalid file type. Allowed: images, videos, PDFs, ZIP files' });
         }
@@ -353,7 +354,7 @@ const UploadPage = () => {
         ) : (
           <div className="mb-6">
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              File Upload * (Max 300MB)
+              File Upload * (Max 2.5GB)
             </label>
             <div
               {...getRootProps()}
