@@ -25,7 +25,7 @@ export const uploadWork = async (formData, onUploadProgress) => {
     // Check if it's a URL-based upload (website/video) or file upload
     const isFormData = formData instanceof FormData;
     const hasFile = isFormData && formData.has('file');
-    
+
     const config = {
       headers: hasFile ? {
         'Content-Type': 'multipart/form-data',
