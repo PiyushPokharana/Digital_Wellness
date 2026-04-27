@@ -10,37 +10,57 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
-// Configure CORS with environment variable for production
+// Configure CORS with environment variable(s) for production.
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    // Allow server-to-server / curl / Postman requests with no Origin header.
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`CORS blocked request from: ${origin}`);
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
+  },
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Atlas connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://your-connection-string';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('✅ Connected to MongoDB Atlas');
-})
-.catch((error) => {
-  console.error('❌ MongoDB connection error:', error);
-  process.exit(1);
-});
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB Atlas');
+  })
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  });
 
 // Routes
 app.use('/api/upload', uploadRoutes);
 app.use('/api/works', workRoutes);
 
-// Health check endpoint
+// Health check endpoints
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Server is running' });
+});
+
+// Backward compatibility for existing checks
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
@@ -48,14 +68,14 @@ app.get('/health', (req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Something went wrong!',
-    message: err.message 
+    message: err.message,
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
