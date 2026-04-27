@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { getWorks } from '../services/api.js';
@@ -21,13 +21,21 @@ const HomePage = () => {
       navigate('/upload', { state: { droppedFile: acceptedFiles[0] } });
     }
   };
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    maxFiles: 1,
+    accept: {
+      'image/*': [],
+      'video/*': [],
+      'application/pdf': [],
+    },
+  });
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
         setLoading(true);
-        const response = await getWorks({ sort: 'newest' });
+        const response = await getWorks({ sort: 'newest', limit: 5, page: 1 });
         setWorks(response.works || []);
         setError(null);
       } catch (err) {
@@ -40,7 +48,7 @@ const HomePage = () => {
     fetchFeatured();
   }, []);
 
-  const featuredWorks = useMemo(() => works.slice(0, 5), [works]);
+  const featuredWorks = works;
 
   return (
     <div className="relative overflow-hidden text-slate-100">

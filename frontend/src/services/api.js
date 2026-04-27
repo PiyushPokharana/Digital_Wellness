@@ -80,6 +80,8 @@ export const getWorks = async (filters = {}) => {
     if (filters.category) params.append('category', filters.category);
     if (filters.search) params.append('search', filters.search);
     if (filters.sort) params.append('sort', filters.sort);
+    if (filters.page) params.append('page', String(filters.page));
+    if (filters.limit) params.append('limit', String(filters.limit));
 
     const response = await api.get(`/works?${params.toString()}`);
     return response.data;

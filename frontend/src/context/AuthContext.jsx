@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
+const ADMIN_EMAILS = (import.meta.env.VITE_ADMIN_EMAILS || '')
+  .split(',')
+  .map((email) => email.trim().toLowerCase())
+  .filter(Boolean);
+
 const AuthContext = createContext({
   user: null,
   isAuthenticated: false,
@@ -26,6 +31,10 @@ export const AuthProvider = ({ children }) => {
     if (!email) return 'guest';
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (ADMIN_EMAILS.includes(normalizedEmail)) {
+      return 'admin';
+    }
+
     if (isValidEmail(normalizedEmail)) {
       return 'student';
     }

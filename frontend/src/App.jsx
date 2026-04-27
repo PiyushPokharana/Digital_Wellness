@@ -4,6 +4,7 @@ import UploadPage from './pages/UploadPage';
 import GalleryPage from './pages/GalleryPage';
 import WorkDetailPage from './pages/WorkDetailPage';
 import HomePage from './pages/HomePage';
+import AdminPage from './pages/AdminPage';
 import { useAuth } from './context/AuthContext.jsx';
 
 const UploadRoute = () => {
@@ -30,6 +31,7 @@ function App() {
           <Route path="/upload" element={<UploadRoute />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/work/:id" element={<WorkDetailPage />} />
+          <Route path="/admin" element={<AdminPage />} />
         </Routes>
       </div>
     </Router>

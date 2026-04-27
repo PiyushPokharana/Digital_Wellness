@@ -14,6 +14,9 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { category, search, sort = 'newest' } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const requestedLimit = parseInt(req.query.limit, 10) || 20;
+    const limit = Math.min(Math.max(requestedLimit, 1), 100);
 
     // Build query
     let query = {};
@@ -34,15 +37,27 @@ router.get('/', async (req, res) => {
     // Determine sort order
     const sortOrder = sort === 'oldest' ? 1 : -1;
 
-    // Fetch works from MongoDB Atlas
-    const works = await Work.find(query)
-      .sort({ timestamp: sortOrder })
-      .select('-__v'); // Exclude version key
+    const [works, totalCount] = await Promise.all([
+      Work.find(query)
+        .sort({ timestamp: sortOrder })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .select('-__v'),
+      Work.countDocuments(query)
+    ]);
+
+    const totalPages = Math.ceil(totalCount / limit) || 1;
 
     res.json({
       success: true,
       count: works.length,
-      works: works
+      totalCount,
+      page,
+      limit,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
+      works
     });
 
   } catch (error) {

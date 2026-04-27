@@ -1,23 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getWorkById } from '../services/api';
+import { useAuth } from '../context/AuthContext.jsx';
 
-/**
- * Work Detail Page Component
- * Displays full details of a student work with embedded media viewer
- */
+const TRUSTED_ROLES = new Set(['student', 'faculty_staff', 'admin']);
+
 const WorkDetailPage = () => {
   const { id } = useParams();
+  const { isAuthenticated, userRole } = useAuth();
   const [work, setWork] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch work details from API
-  useEffect(() => {
-    fetchWork();
-  }, [id]);
+  const canViewSensitiveInfo = isAuthenticated && TRUSTED_ROLES.has(userRole);
 
-  const fetchWork = async () => {
+  const fetchWork = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -29,9 +26,12 @@ const WorkDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  // Format date
+  useEffect(() => {
+    fetchWork();
+  }, [fetchWork]);
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -43,7 +43,6 @@ const WorkDetailPage = () => {
     });
   };
 
-  // Get category badge color
   const getCategoryColor = (category) => {
     const colors = {
       Comic: 'border border-purple-500/40 bg-purple-500/10 text-purple-100',
@@ -55,25 +54,24 @@ const WorkDetailPage = () => {
     return colors[category] || colors.Other;
   };
 
-  // Render media viewer based on file type
   const renderMediaViewer = () => {
     if (!work) return null;
 
     switch (work.fileType) {
       case 'image':
         return (
-          <div className="bg-slate-900/70 rounded-lg p-4 flex items-center justify-center border border-slate-800">
+          <div className="flex items-center justify-center rounded-lg border border-slate-800 bg-slate-900/70 p-4">
             <img
               src={work.fileUrl}
               alt={work.title}
-              className="max-w-full max-h-96 rounded-lg shadow-2xl shadow-black/40"
+              className="max-h-96 max-w-full rounded-lg shadow-2xl shadow-black/40"
             />
           </div>
         );
 
       case 'video':
         return (
-          <div className="bg-slate-900/70 rounded-lg p-4 border border-slate-800">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
             <video
               src={work.fileUrl}
               controls
@@ -86,33 +84,28 @@ const WorkDetailPage = () => {
 
       case 'website':
         return (
-          <div className="bg-slate-900/70 rounded-lg p-4 border border-slate-800">
-            <iframe
-              src={work.fileUrl}
-              sandbox="allow-scripts allow-same-origin"
-              title="Website Preview"
-              className="w-full h-[600px] md:h-[800px] rounded-lg shadow-2xl bg-white"
-            />
-            <div className="mt-4 text-center">
-              <a
-                href={work.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition hover:brightness-110"
-              >
-                <span className="mr-2">↗</span>
-                Open in new tab
-              </a>
-            </div>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 text-center">
+            <p className="mb-4 text-slate-300">
+              Website previews are opened in a separate tab for safer browsing.
+            </p>
+            <a
+              href={work.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-white transition hover:brightness-110"
+            >
+              <span className="mr-2">↗</span>
+              Open website
+            </a>
           </div>
         );
 
       case 'pdf':
         return (
-          <div className="bg-slate-900/70 rounded-lg p-4 border border-slate-800">
+          <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-4">
             <iframe
               src={`${work.fileUrl}#toolbar=1`}
-              className="w-full h-96 rounded-lg shadow-2xl shadow-black/40"
+              className="h-96 w-full rounded-lg shadow-2xl shadow-black/40"
               title="PDF Viewer"
             />
             <div className="mt-4 text-center">
@@ -121,7 +114,7 @@ const WorkDetailPage = () => {
                 download
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition hover:brightness-110"
+                className="inline-flex items-center rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-white transition hover:brightness-110"
               >
                 <span className="mr-2">📥</span>
                 Download PDF
@@ -132,15 +125,15 @@ const WorkDetailPage = () => {
 
       case 'zip':
         return (
-          <div className="bg-slate-900/70 rounded-lg p-6 text-center border border-slate-800">
-            <div className="text-6xl mb-4">📦</div>
-            <p className="text-slate-300 mb-4">ZIP File</p>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 text-center">
+            <div className="mb-4 text-6xl">📦</div>
+            <p className="mb-4 text-slate-300">ZIP File</p>
             <a
               href={work.fileUrl}
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition hover:brightness-110"
+              className="inline-flex items-center rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-white transition hover:brightness-110"
             >
               <span className="mr-2">📥</span>
               Download ZIP
@@ -150,15 +143,15 @@ const WorkDetailPage = () => {
 
       default:
         return (
-          <div className="bg-slate-900/70 rounded-lg p-6 text-center border border-slate-800">
-            <div className="text-6xl mb-4">📎</div>
-            <p className="text-slate-300 mb-4">File Preview Not Available</p>
+          <div className="rounded-lg border border-slate-800 bg-slate-900/70 p-6 text-center">
+            <div className="mb-4 text-6xl">📎</div>
+            <p className="mb-4 text-slate-300">File Preview Not Available</p>
             <a
               href={work.fileUrl}
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white transition hover:brightness-110"
+              className="inline-flex items-center rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 px-6 py-3 text-white transition hover:brightness-110"
             >
               <span className="mr-2">📥</span>
               Download File
@@ -169,101 +162,99 @@ const WorkDetailPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-slate-100">
-      {/* Back Button */}
-      <Link
-        to="/gallery"
-        className="inline-flex items-center text-cyan-300 hover:text-white mb-6"
-      >
+    <div className="mx-auto max-w-6xl px-4 py-12 text-slate-100 sm:px-6 lg:px-8">
+      <Link to="/gallery" className="mb-6 inline-flex items-center text-cyan-300 hover:text-white">
         <span className="mr-2">←</span>
         Back to Gallery
       </Link>
 
-      {/* Loading State */}
       {loading && (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+        <div className="py-12 text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-cyan-400"></div>
           <p className="mt-4 text-slate-400">Loading work details...</p>
         </div>
       )}
 
-      {/* Error State */}
       {error && !loading && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-          <p className="text-red-200 font-semibold">Error loading work</p>
-          <p className="text-red-300 mt-2">{error}</p>
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-6 text-center">
+          <p className="font-semibold text-red-200">Error loading work</p>
+          <p className="mt-2 text-red-300">{error}</p>
           <Link
             to="/gallery"
-            className="mt-4 inline-block px-6 py-2 rounded-full bg-red-500/80 text-white hover:bg-red-400 transition-colors"
+            className="mt-4 inline-block rounded-full bg-red-500/80 px-6 py-2 text-white transition-colors hover:bg-red-400"
           >
             Back to Gallery
           </Link>
         </div>
       )}
 
-      {/* Work Details */}
       {work && !loading && (
-        <div className="bg-slate-950/60 rounded-3xl border border-slate-800 shadow-2xl shadow-black/40 overflow-hidden">
-          {/* Header Section */}
+        <div className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-950/60 shadow-2xl shadow-black/40">
           <div className="bg-gradient-to-r from-cyan-500 via-blue-600 to-blue-800 p-8 text-white">
-            <div className="flex items-start justify-between flex-wrap gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mb-2 ${getCategoryColor(work.category)}`}>
+                <span
+                  className={`mb-2 inline-block rounded-full px-3 py-1 text-sm font-semibold ${getCategoryColor(work.category)}`}
+                >
                   {work.category}
                 </span>
-                <h1 className="text-3xl md:text-4xl font-bold mb-2">{work.title}</h1>
+                <h1 className="mb-2 text-3xl font-bold md:text-4xl">{work.title}</h1>
                 <p className="text-blue-100">{formatDate(work.timestamp)}</p>
               </div>
             </div>
           </div>
 
-          {/* Content Section */}
-          <div className="p-6 md:p-8 space-y-8">
-            {/* Media Viewer */}
+          <div className="space-y-8 p-6 md:p-8">
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">Media</h2>
+              <h2 className="mb-4 text-xl font-semibold text-white">Media</h2>
               {renderMediaViewer()}
             </div>
 
-            {/* Description */}
             <div>
-              <h2 className="text-xl font-semibold text-white mb-4">Description</h2>
-              <p className="text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {work.description}
-              </p>
+              <h2 className="mb-4 text-xl font-semibold text-white">Description</h2>
+              <p className="whitespace-pre-wrap leading-relaxed text-slate-300">{work.description}</p>
             </div>
 
-            {/* Student Information */}
-            <div className="bg-slate-900/50 rounded-2xl border border-slate-800 p-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Student Information</h2>
-              <div className="grid md:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+              <h2 className="mb-4 text-xl font-semibold text-white">Student Information</h2>
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p className="text-sm text-slate-500 mb-1">Name</p>
-                  <p className="text-white font-medium">{work.name}</p>
+                  <p className="mb-1 text-sm text-slate-500">Name</p>
+                  <p className="font-medium text-white">{work.name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 mb-1">Roll Number</p>
-                  <p className="text-white font-medium">{work.roll}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500 mb-1">Email</p>
-                  <p className="text-white font-medium">
-                    <a href={`mailto:${work.email}`} className="text-cyan-300 hover:underline">
-                      {work.email}
-                    </a>
+                  <p className="mb-1 text-sm text-slate-500">Roll Number</p>
+                  <p className="font-medium text-white">
+                    {canViewSensitiveInfo ? work.roll : 'Hidden for privacy'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-slate-500 mb-1">File Type</p>
-                  <p className="text-white font-medium capitalize">{work.fileType}</p>
+                  <p className="mb-1 text-sm text-slate-500">Email</p>
+                  <p className="font-medium text-white">
+                    {canViewSensitiveInfo ? (
+                      <a href={`mailto:${work.email}`} className="text-cyan-300 hover:underline">
+                        {work.email}
+                      </a>
+                    ) : (
+                      'Hidden for privacy'
+                    )}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-1 text-sm text-slate-500">File Type</p>
+                  <p className="font-medium capitalize text-white">{work.fileType}</p>
                 </div>
               </div>
+              {!canViewSensitiveInfo && (
+                <p className="mt-4 text-sm text-slate-400">
+                  Sign in with an authorized IIITN account to view protected student contact details.
+                </p>
+              )}
             </div>
 
-            {/* Download/View Link */}
             <div className="border-t border-slate-800 pt-6">
-              <h2 className="text-xl font-semibold text-white mb-4">File URL</h2>
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-800 break-all">
+              <h2 className="mb-4 text-xl font-semibold text-white">File URL</h2>
+              <div className="break-all rounded-lg border border-slate-800 bg-slate-900/50 p-4">
                 <a
                   href={work.fileUrl}
                   target="_blank"
