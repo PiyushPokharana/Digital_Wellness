@@ -4,9 +4,11 @@ const AuthContext = createContext({
   user: null,
   isAuthenticated: false,
   isLoading: true,
-  login: () => {},
-  logout: () => {},
+  login: () => { },
+  logout: () => { },
   canUpload: false,
+  userRole: 'guest',
+  getUserRole: () => 'guest',
 });
 
 export const AuthProvider = ({ children }) => {
@@ -18,6 +20,21 @@ export const AuthProvider = ({ children }) => {
     if (!email) return false;
     const pattern = /^bt2\d{7}@iiitn\.ac\.in$/i;
     return pattern.test(email);
+  };
+
+  const getUserRole = (email) => {
+    if (!email) return 'guest';
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (isValidEmail(normalizedEmail)) {
+      return 'student';
+    }
+
+    if (normalizedEmail.endsWith('@iiitn.ac.in')) {
+      return 'faculty_staff';
+    }
+
+    return 'external';
   };
 
   useEffect(() => {
@@ -35,12 +52,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    if (isValidEmail(userData.email)) {
-      setUser(userData);
-      localStorage.setItem('dw_user', JSON.stringify(userData));
-      return true;
-    }
-    return false;
+    const role = getUserRole(userData?.email);
+    const normalizedUser = {
+      ...userData,
+      email: userData?.email?.toLowerCase() || '',
+      role,
+    };
+
+    setUser(normalizedUser);
+    localStorage.setItem('dw_user', JSON.stringify(normalizedUser));
+    return role;
   };
 
   const logout = () => {
@@ -48,7 +69,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('dw_user');
   };
 
-  const canUpload = user && isValidEmail(user.email);
+  const userRole = user?.role || getUserRole(user?.email);
+  const canUpload = userRole === 'student';
 
   return (
     <AuthContext.Provider
@@ -59,6 +81,8 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         canUpload,
+        userRole,
+        getUserRole,
         isValidEmail,
       }}
     >

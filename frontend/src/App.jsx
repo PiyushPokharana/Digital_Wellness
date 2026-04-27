@@ -4,6 +4,17 @@ import UploadPage from './pages/UploadPage';
 import GalleryPage from './pages/GalleryPage';
 import WorkDetailPage from './pages/WorkDetailPage';
 import HomePage from './pages/HomePage';
+import { useAuth } from './context/AuthContext.jsx';
+
+const UploadRoute = () => {
+  const { canUpload, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
+
+  return canUpload ? <UploadPage /> : <GalleryPage />;
+};
 
 /**
  * Main App Component
@@ -16,7 +27,7 @@ function App() {
         <Navbar />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/upload" element={<UploadRoute />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/work/:id" element={<WorkDetailPage />} />
         </Routes>

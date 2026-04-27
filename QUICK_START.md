@@ -39,6 +39,7 @@ npm install
 
 # Create .env file
 # VITE_API_BASE_URL=https://your-backend-domain.com/api
+# VITE_GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
 
 npm run dev
 # Frontend runs on your deployed frontend domain
@@ -60,9 +61,11 @@ npm run dev
 - [ ] `CLOUDINARY_API_SECRET` - Your Cloudinary API secret
 - [ ] `PORT` - Server port (default: 5000)
 - [ ] `CORS_ORIGIN` - Frontend URL (example: https://your-frontend-domain.com)
+- [ ] `GOOGLE_CLIENT_ID` - Google OAuth Web Client ID (must match frontend)
 
 ### Frontend `.env` (frontend/.env)
 - [ ] `VITE_API_BASE_URL` - Backend API URL (example: https://your-backend-domain.com/api)
+- [ ] `VITE_GOOGLE_CLIENT_ID` - Google OAuth Web Client ID
 
 ## 🐛 Common Issues
 

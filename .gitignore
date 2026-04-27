@@ -48,3 +48,7 @@ coverage/
 # Misc
 *.pem
 .cache/
+
+# Personal files
+project_Context.yaml
+checklist.md

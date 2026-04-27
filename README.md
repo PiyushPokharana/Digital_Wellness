@@ -88,10 +88,12 @@ Default URLs:
 - `CLOUDINARY_API_SECRET` Cloudinary API secret
 - `PORT` API port (default `5000`)
 - `CORS_ORIGIN` frontend URL for CORS (for example `https://your-frontend-domain.com`)
+- `GOOGLE_CLIENT_ID` Google OAuth web client ID for verifying signed-in users on upload
 
 ### Frontend (`frontend/.env`)
 
 - `VITE_API_BASE_URL` backend API URL, for example `https://your-backend-domain.com/api`
+- `VITE_GOOGLE_CLIENT_ID` Google OAuth web client ID
 
 ## Scripts
 

@@ -14,6 +14,22 @@ const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  try {
+    const storedUser = localStorage.getItem('dw_user');
+    if (!storedUser) return config;
+
+    const parsedUser = JSON.parse(storedUser);
+    if (parsedUser?.idToken) {
+      config.headers.Authorization = `Bearer ${parsedUser.idToken}`;
+    }
+  } catch (error) {
+    console.warn('Failed to attach auth token:', error);
+  }
+
+  return config;
+});
+
 /**
  * Upload student work
  * @param {FormData} formData - Form data containing file and metadata

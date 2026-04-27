@@ -30,7 +30,7 @@ const UploadPage = () => {
   // Redirect if not authenticated
   useEffect(() => {
     if (!canUpload) {
-      navigate('/');
+      navigate('/gallery');
     } else if (user?.email) {
       setFormData((prev) => ({ ...prev, email: user.email }));
     }
@@ -74,7 +74,7 @@ const UploadPage = () => {
   const validate = () => {
     const newErrors = {};
     const isWebsiteOrVideo = formData.category === 'Website' || formData.category === 'Skit';
-    
+
     if (!formData.name.trim()) newErrors.name = 'Student name is required';
     if (!formData.roll.trim()) newErrors.roll = 'Roll number is required';
     if (!formData.email.trim()) {
@@ -84,7 +84,7 @@ const UploadPage = () => {
     }
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
-    
+
     if (isWebsiteOrVideo) {
       if (!formData.url.trim()) {
         newErrors.url = `${formData.category === 'Website' ? 'Website' : 'Video'} URL is required`;
@@ -102,7 +102,7 @@ const UploadPage = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validate()) {
       return;
     }
@@ -113,9 +113,9 @@ const UploadPage = () => {
 
     try {
       const isWebsiteOrVideo = formData.category === 'Website' || formData.category === 'Skit';
-      
+
       let data;
-      
+
       if (isWebsiteOrVideo) {
         // For URL-based uploads, send as JSON
         data = {
@@ -170,8 +170,8 @@ const UploadPage = () => {
 
     } catch (error) {
       console.error('Upload error:', error);
-      setErrors({ 
-        submit: error.message || error.error || 'Upload failed. Please try again.' 
+      setErrors({
+        submit: error.message || error.error || 'Upload failed. Please try again.'
       });
     } finally {
       setIsUploading(false);
@@ -224,9 +224,8 @@ const UploadPage = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
-                errors.name ? 'border border-red-500/60' : 'border border-slate-700'
-              }`}
+              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${errors.name ? 'border border-red-500/60' : 'border border-slate-700'
+                }`}
               placeholder="Enter your name"
             />
             {errors.name && <p className="mt-1 text-sm text-red-400">{errors.name}</p>}
@@ -242,9 +241,8 @@ const UploadPage = () => {
               name="roll"
               value={formData.roll}
               onChange={handleChange}
-              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
-                errors.roll ? 'border border-red-500/60' : 'border border-slate-700'
-              }`}
+              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${errors.roll ? 'border border-red-500/60' : 'border border-slate-700'
+                }`}
               placeholder="Enter roll number"
             />
             {errors.roll && <p className="mt-1 text-sm text-red-400">{errors.roll}</p>}
@@ -280,9 +278,8 @@ const UploadPage = () => {
             name="title"
             value={formData.title}
             onChange={handleChange}
-            className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
-              errors.title ? 'border border-red-500/60' : 'border border-slate-700'
-            }`}
+            className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${errors.title ? 'border border-red-500/60' : 'border border-slate-700'
+              }`}
             placeholder="Enter title of your work"
           />
           {errors.title && <p className="mt-1 text-sm text-red-400">{errors.title}</p>}
@@ -298,9 +295,8 @@ const UploadPage = () => {
             value={formData.description}
             onChange={handleChange}
             rows={4}
-            className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
-              errors.description ? 'border border-red-500/60' : 'border border-slate-700'
-            }`}
+            className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${errors.description ? 'border border-red-500/60' : 'border border-slate-700'
+              }`}
             placeholder="Describe your work..."
           />
           {errors.description && <p className="mt-1 text-sm text-red-400">{errors.description}</p>}
@@ -337,9 +333,8 @@ const UploadPage = () => {
               name="url"
               value={formData.url}
               onChange={handleChange}
-              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${
-                errors.url ? 'border border-red-500/60' : 'border border-slate-700'
-              }`}
+              className={`w-full px-4 py-2 rounded-lg bg-slate-900/60 text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-cyan-500 focus:border-transparent ${errors.url ? 'border border-red-500/60' : 'border border-slate-700'
+                }`}
               placeholder={
                 formData.category === 'Website'
                   ? 'https://your-website.com'
@@ -358,13 +353,12 @@ const UploadPage = () => {
             </label>
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
-                isDragActive
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${isDragActive
                   ? 'border-cyan-400 bg-cyan-500/10'
                   : errors.file
-                  ? 'border-red-500 bg-red-500/10'
-                  : 'border-slate-700 bg-slate-900/40 hover:border-cyan-400 hover:bg-slate-900/70'
-              }`}
+                    ? 'border-red-500 bg-red-500/10'
+                    : 'border-slate-700 bg-slate-900/40 hover:border-cyan-400 hover:bg-slate-900/70'
+                }`}
             >
               <input {...getInputProps()} />
               {file ? (
@@ -449,11 +443,10 @@ const UploadPage = () => {
         <button
           type="submit"
           disabled={isUploading}
-          className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${
-            isUploading
+          className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${isUploading
               ? 'bg-slate-700 cursor-not-allowed'
               : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110'
-          }`}
+            }`}
         >
           {isUploading ? 'Uploading...' : 'Upload Work'}
         </button>

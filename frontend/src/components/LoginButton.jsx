@@ -3,8 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 const LoginButton = () => {
-  const { login, isValidEmail } = useAuth();
+  const { login, getUserRole } = useAuth();
   const navigate = useNavigate();
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  if (!googleClientId) {
+    return (
+      <p className="rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+        Google sign-in is unavailable. Set VITE_GOOGLE_CLIENT_ID in frontend/.env.
+      </p>
+    );
+  }
 
   const handleSuccess = async (credentialResponse) => {
     try {
@@ -19,19 +28,19 @@ const LoginButton = () => {
       );
       const userData = JSON.parse(jsonPayload);
 
-      if (isValidEmail(userData.email)) {
-        const success = login({
-          email: userData.email,
-          name: userData.name,
-          picture: userData.picture,
-        });
-        if (success) {
-          navigate('/upload');
-        }
+      const userRole = getUserRole(userData.email);
+      login({
+        email: userData.email,
+        name: userData.name,
+        picture: userData.picture,
+        idToken: credentialResponse.credential,
+      });
+
+      if (userRole === 'student') {
+        navigate('/upload');
       } else {
-        alert(
-          'Access denied. Only IIITN students with email format bt2xxxxxxx@iiitn.ac.in can upload.'
-        );
+        navigate('/gallery');
+        alert('Signed in successfully. Submission access is limited to IIITN DW students with valid BT IDs.');
       }
     } catch (error) {
       console.error('Login error:', error);

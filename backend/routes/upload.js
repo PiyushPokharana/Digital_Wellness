@@ -3,10 +3,13 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const { body, validationResult } = require('express-validator');
+const { OAuth2Client } = require('google-auth-library');
 const Work = require('../models/Work');
 const { uploadLargeToCloudinary, getResourceType } = require('../config/cloudinary');
 
 const router = express.Router();
+const googleClientId = process.env.GOOGLE_CLIENT_ID;
+const oauthClient = googleClientId ? new OAuth2Client(googleClientId) : null;
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, '../uploads');
@@ -56,7 +59,7 @@ const optionalFileUpload = (req, res, next) => {
   if (req.headers['content-type']?.includes('application/json')) {
     return next();
   }
-  
+
   // For multipart/form-data, use multer (file upload)
   upload.single('file')(req, res, (err) => {
     // Ignore multer errors if no file is provided (will be validated in route handler)
@@ -71,6 +74,44 @@ const optionalFileUpload = (req, res, next) => {
 const validateIIITNEmail = (email) => {
   const pattern = /^bt2\d{7}@iiitn\.ac\.in$/i;
   return pattern.test(email);
+};
+
+const verifyGoogleAuth = async (req, res, next) => {
+  try {
+    if (!oauthClient) {
+      return res.status(500).json({ error: 'Server auth is not configured. Missing GOOGLE_CLIENT_ID.' });
+    }
+
+    const authHeader = req.headers.authorization || '';
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Missing Google auth token' });
+    }
+
+    const idToken = authHeader.slice('Bearer '.length).trim();
+    if (!idToken) {
+      return res.status(401).json({ error: 'Invalid Google auth token' });
+    }
+
+    const ticket = await oauthClient.verifyIdToken({
+      idToken,
+      audience: googleClientId,
+    });
+
+    const payload = ticket.getPayload();
+    req.authUser = {
+      email: (payload?.email || '').toLowerCase(),
+      name: payload?.name || '',
+      sub: payload?.sub || '',
+    };
+
+    if (!req.authUser.email) {
+      return res.status(401).json({ error: 'Unable to verify Google account email' });
+    }
+
+    return next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Google authentication failed', message: error.message });
+  }
 };
 
 // Validation rules for form fields
@@ -96,12 +137,21 @@ const validateFields = [
  * Upload student work to cloud storage and save metadata to MongoDB
  * Supports both file uploads and URL-based uploads (for Website/Video categories)
  */
-router.post('/', optionalFileUpload, validateFields, async (req, res) => {
+router.post('/', verifyGoogleAuth, optionalFileUpload, validateFields, async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+
+    const submittedEmail = (req.body.email || '').trim().toLowerCase();
+    if (submittedEmail !== req.authUser.email) {
+      return res.status(403).json({ error: 'Email must match the signed-in Google account' });
+    }
+
+    if (!validateIIITNEmail(req.authUser.email)) {
+      return res.status(403).json({ error: 'Only IIITN students with valid BT IDs can upload' });
     }
 
     const isWebsiteOrVideo = req.body.category === 'Website' || req.body.category === 'Skit';
@@ -171,7 +221,7 @@ router.post('/', optionalFileUpload, validateFields, async (req, res) => {
     const work = new Work({
       name: req.body.name.trim(),
       roll: req.body.roll.trim(),
-      email: req.body.email.trim().toLowerCase(),
+      email: req.authUser.email,
       title: req.body.title.trim(),
       description: req.body.description.trim(),
       category: req.body.category,
