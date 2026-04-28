@@ -72,7 +72,7 @@ const optionalFileUpload = (req, res, next) => {
 
 // Email validation for IIITN format
 const validateIIITNEmail = (email) => {
-  const pattern = /^bt2\d{7}@iiitn\.ac\.in$/i;
+  const pattern = /^bt\d{2}[a-z]{3}\d{3}@iiitn\.ac\.in$/i;
   return pattern.test(email);
 };
 
